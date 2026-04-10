@@ -162,10 +162,7 @@ describe("Multiple Dates Selected", function () {
   it("should use function dateFormat with formatMultipleDates", () => {
     const { container: datePicker } = getDatePicker({
       selectsMultiple: true,
-      selectedDates: [
-        new Date("2024/01/01"),
-        new Date("2024/01/15"),
-      ],
+      selectedDates: [new Date("2024/01/01"), new Date("2024/01/15")],
       dateFormat: shortDateFormatter,
       formatMultipleDates: (dates, formatDate) =>
         dates.map(formatDate).join(" | "),
