@@ -1,4 +1,4 @@
-const formatter = new Intl.DateTimeFormat("en-US", {
+const formatter = new Intl.DateTimeFormat(undefined, {
   weekday: "short",
   year: "numeric",
   month: "long",
