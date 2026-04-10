@@ -65,6 +65,7 @@ import type { Locale as DateFnsLocale, Day } from "date-fns";
 // Timezone support types and utilities
 // These are dynamically imported when timeZone prop is used
 export type TimeZone = string;
+export type DateFormat = string | string[] | ((date: Date) => string);
 
 interface DateFnsTz {
   toZonedTime: (date: Date | number | string, timeZone: string) => Date;
@@ -448,17 +449,21 @@ export function safeDateFormat(
     dateFormat,
     locale,
     timeZone,
-  }: { dateFormat: string | string[]; locale?: Locale; timeZone?: TimeZone },
+  }: { dateFormat: DateFormat; locale?: Locale; timeZone?: TimeZone },
 ): string {
+  if (!date) {
+    return "";
+  }
+
+  if (typeof dateFormat === "function") {
+    return dateFormat(date);
+  }
+
   const formatStr = (
     Array.isArray(dateFormat) && dateFormat.length > 0
       ? dateFormat[0]
       : dateFormat
   ) as string; // Cast to string because it's impossible to get `string | string[] | undefined` here and typescript doesn't know that
-
-  if (!date) {
-    return "";
-  }
 
   // Use timezone-aware formatting if timeZone is specified
   if (timeZone) {
@@ -490,7 +495,7 @@ export function safeDateRangeFormat(
   startDate: Date | null | undefined,
   endDate: Date | null | undefined,
   props: {
-    dateFormat: string | string[];
+    dateFormat: DateFormat;
     locale?: Locale;
     rangeSeparator?: string;
     timeZone?: TimeZone;
@@ -517,7 +522,7 @@ export function safeDateRangeFormat(
 export function safeMultipleDatesFormat(
   dates: Date[],
   props: {
-    dateFormat: string | string[];
+    dateFormat: DateFormat;
     locale?: Locale;
     timeZone?: TimeZone;
   },

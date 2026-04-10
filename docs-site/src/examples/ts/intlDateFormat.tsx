@@ -1,0 +1,20 @@
+const formatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const IntlDateFormat = () => {
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  return (
+    <DatePicker
+      dateFormat={(date) => formatter.format(date)}
+      selected={selectedDate}
+      onChange={setSelectedDate}
+    />
+  );
+};
+
+render(IntlDateFormat);

@@ -48,6 +48,7 @@ import {
   getWeek,
   safeDateRangeFormat,
   safeDateFormat,
+  safeMultipleDatesFormat,
   getHolidaysMap,
   arraysAreEqual,
   startOfMinute,
@@ -1712,6 +1713,98 @@ describe("date_utils", () => {
 
       expect(formatted).toBeTruthy();
       expect(typeof formatted).toBe("string");
+    });
+  });
+
+  describe("function-based dateFormat", () => {
+    const customFormatter = (date: Date) =>
+      new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(date);
+
+    describe("safeDateFormat", () => {
+      it("should use the function to format the date", () => {
+        const date = new Date("2024-01-15T00:00:00");
+        const result = safeDateFormat(date, { dateFormat: customFormatter });
+        expect(result).toBe("January 15, 2024");
+      });
+
+      it("should return empty string for null date", () => {
+        const result = safeDateFormat(null, { dateFormat: customFormatter });
+        expect(result).toBe("");
+      });
+
+      it("should return empty string for undefined date", () => {
+        const result = safeDateFormat(undefined, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("");
+      });
+
+      it("should ignore locale and timeZone when dateFormat is a function", () => {
+        const date = new Date("2024-01-15T00:00:00");
+        const result = safeDateFormat(date, {
+          dateFormat: customFormatter,
+          locale: "fr",
+          timeZone: "Asia/Tokyo",
+        });
+        // The function controls formatting, so locale/timeZone are ignored
+        expect(result).toBe("January 15, 2024");
+      });
+    });
+
+    describe("safeDateRangeFormat", () => {
+      it("should format both endpoints using the function", () => {
+        const startDate = new Date("2024-01-15T00:00:00");
+        const endDate = new Date("2024-01-20T00:00:00");
+        const result = safeDateRangeFormat(startDate, endDate, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("January 15, 2024 - January 20, 2024");
+      });
+
+      it("should handle null endDate with function format", () => {
+        const startDate = new Date("2024-01-15T00:00:00");
+        const result = safeDateRangeFormat(startDate, null, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("January 15, 2024 - ");
+      });
+    });
+
+    describe("safeMultipleDatesFormat", () => {
+      it("should format single date using the function", () => {
+        const dates = [new Date("2024-01-15T00:00:00")];
+        const result = safeMultipleDatesFormat(dates, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("January 15, 2024");
+      });
+
+      it("should format two dates using the function", () => {
+        const dates = [
+          new Date("2024-01-15T00:00:00"),
+          new Date("2024-03-20T00:00:00"),
+        ];
+        const result = safeMultipleDatesFormat(dates, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("January 15, 2024, March 20, 2024");
+      });
+
+      it("should format three+ dates with count badge using the function", () => {
+        const dates = [
+          new Date("2024-01-15T00:00:00"),
+          new Date("2024-03-20T00:00:00"),
+          new Date("2024-06-10T00:00:00"),
+        ];
+        const result = safeMultipleDatesFormat(dates, {
+          dateFormat: customFormatter,
+        });
+        expect(result).toBe("January 15, 2024 (+2)");
+      });
     });
   });
 

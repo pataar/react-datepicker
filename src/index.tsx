@@ -29,7 +29,6 @@ import {
   getEffectiveMaxDate,
   parseDate,
   parseDateForNavigation,
-  formatDate,
   safeDateFormat,
   safeDateRangeFormat,
   getHighLightDaysMap,
@@ -55,6 +54,7 @@ import {
   safeToDate,
   type HighlightDate,
   type HolidayItem,
+  type DateFormat,
   type TimeZone,
   KeyType,
   DATE_RANGE_SEPARATOR,
@@ -68,6 +68,8 @@ import type { ClickOutsideHandler } from "./click_outside_wrapper";
 export { default as CalendarContainer } from "./calendar_container";
 
 export { registerLocale, setDefaultLocale, getDefaultLocale };
+
+export type { DateFormat } from "./date_utils";
 
 export {
   ReactDatePickerCustomHeaderProps,
@@ -171,7 +173,7 @@ export type DatePickerProps = OmitUnion<
     ariaLabelClose?: string;
     className?: string;
     customInput?: Parameters<typeof cloneElement>[0];
-    dateFormat?: string | string[];
+    dateFormat?: DateFormat;
     showDateSelect?: boolean;
     highlightDates?: (Date | HighlightDate)[];
     onCalendarOpen?: VoidFunction;
@@ -779,6 +781,10 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
     const value =
       event?.target instanceof HTMLInputElement ? event.target.value : "";
 
+    if (typeof dateFormat === "function") {
+      return;
+    }
+
     if (selectsRange) {
       const rangeSeparator = this.props.rangeSeparator as string;
       const trimmedRangeSeparator = rangeSeparator.trim();
@@ -1259,7 +1265,6 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
     const timeIntervals = this.props.timeIntervals ?? 30;
     const dateFormat =
       this.props.dateFormat ?? DatePicker.defaultProps.dateFormat;
-    const formatStr = Array.isArray(dateFormat) ? dateFormat[0] : dateFormat;
 
     const baseDate = getStartOfDay(currentTime);
     const currentMinutes = getHours(currentTime) * 60 + getMinutes(currentTime);
@@ -1274,11 +1279,11 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
       newTime = addMinutes(baseDate, newMinutes);
     }
 
-    const formattedTime = formatDate(
-      newTime,
-      formatStr || DatePicker.defaultProps.dateFormat,
-      this.props.locale,
-    );
+    const formattedTime = safeDateFormat(newTime, {
+      dateFormat,
+      locale: this.props.locale,
+      timeZone: this.props.timeZone,
+    });
     this.setState({
       preSelection: newTime,
       inputValue: formattedTime,
@@ -1318,6 +1323,11 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
 
     const defaultTime =
       this.state.preSelection || safeToDate(this.props.selected) || newDate();
+
+    if (typeof dateFormat === "function") {
+      return;
+    }
+
     const parsedDate = parseDate(
       inputValue,
       dateFormat,

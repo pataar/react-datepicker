@@ -7074,4 +7074,56 @@ describe("DatePicker", () => {
       expect(datepicker).not.toBeNull();
     });
   });
+
+  describe("function-based dateFormat", () => {
+    const intlFormatter = (date: Date) =>
+      new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(date);
+
+    it("should render input value using function dateFormat", () => {
+      const { container } = render(
+        <DatePicker
+          selected={new Date("2024/01/15")}
+          onChange={() => {}}
+          dateFormat={intlFormatter}
+        />,
+      );
+
+      const input = container.querySelector("input");
+      expect(input?.value).toBe("January 15, 2024");
+    });
+
+    it("should render date range using function dateFormat", () => {
+      const { container } = render(
+        <DatePicker
+          selectsRange
+          startDate={new Date("2024/01/15")}
+          endDate={new Date("2024/01/20")}
+          onChange={() => {}}
+          dateFormat={intlFormatter}
+        />,
+      );
+
+      const input = container.querySelector("input");
+      expect(input?.value).toBe("January 15, 2024 - January 20, 2024");
+    });
+
+    it("should render partial date range using function dateFormat", () => {
+      const { container } = render(
+        <DatePicker
+          selectsRange
+          startDate={new Date("2024/01/15")}
+          endDate={null}
+          onChange={() => {}}
+          dateFormat={intlFormatter}
+        />,
+      );
+
+      const input = container.querySelector("input");
+      expect(input?.value).toBe("January 15, 2024 - ");
+    });
+  });
 });
