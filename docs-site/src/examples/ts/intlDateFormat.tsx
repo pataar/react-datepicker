@@ -1,3 +1,4 @@
+// undefined falls back to the browser's default locale
 const formatter = new Intl.DateTimeFormat(undefined, {
   weekday: "short",
   year: "numeric",
